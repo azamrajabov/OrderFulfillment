@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+{% block title %}Orders Details {{ order.orderId }}{% endblock %}
+{% block head %}
+    {{ super() }}
+<style>
+.field {
+    font-weight: bold;
+    border-bottom: 2px rgba(0,123,255,.5) solid;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+.value {
+    padding: 5px 5px 5px 10px;
+}
+.value select {
+    padding: 5px 0px;
+    width: 300px;
+}
+.value input {
+    padding: 4px;
+    width: 300px;
+}
+</style>
+{% endblock %}
+{% block content %}
+    <br>
+    <h1>Order Details</h1>
+    <br>
+    <form action="/{{ env_name }}/order" method="POST">
+    <div class='field'>Order Number</div>
+    <div class='value'>{{ order.order_num }}</div>
+
+    <input type="hidden" name="orderId" value="{{ order.orderId }}">
+    <div class='field'>Order ID</div>
+    <div class='value'>{{ order.orderId }}</div>
+
+    <div class='field'>Business Name</div>
+    <div class='value'>{{ order.address.business }} - {{ order.address.name }}</div>
+
+    <div class='field'>Shipping Address</div>
+    <div class='value'>{{ order.address.addressLine1 }} {{ order.address.addressLine2 }} {{ order.address.city }} {{ order.address.state }} {{ order.address.zipCode }}</div>
+
+    <div class='field'>Shipping Vendor</div>
+    <div class='value'>
+        {{ order.shippingVendor }}
+    </div>
+    <div class='field'>Tracking Id</div>
+    <div class='value'>
+        {{ order.trackingId }}
+    </div>
+    <div class='field'>Delivery Date</div>
+    <div class='value'>
+        {{ order.deliveryDate }}
+    </div>
+
+    <div class='field'>Vehicles</div>
+    {% for vehicle in order.vehicles -%}
+        <div class='value'>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-truck" viewBox="0 0 16 16">
+  <path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5v-7zm1.294 7.456A1.999 1.999 0 0 1 4.732 11h5.536a2.01 2.01 0 0 1 .732-.732V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .294.456zM12 10a2 2 0 0 1 1.732 1h.768a.5.5 0 0 0 .5-.5V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 13.02 6H12v4zm-9 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm9 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+</svg> &nbsp;
+            <strong>VIN</strong> {{ vehicle.vin }}</div>
+        <div class='value'>{{ vehicle.vindecoded_values }}</div>
+        <div class='value'>
+            <div class='field'>Adapter</div>
+            <div class='value'>
+                <select name="vehicle[{{ vehicle.vin }}]" class="adapter">
+                    <option value="">Select Adapter</option>
+                    <option value="OBD -> J1708 Adapter 6 Pin" {% if vehicle.adapter == "OBD -> J1708 Adapter 6 Pin" %}selected{% endif %}>[ADP01] OBD -> J1708 Adapter 6 Pin</option>
+                    <option value="J1939 Power Cord 9 Pin" {% if vehicle.adapter == "J1939 Power Cord 9 Pin" %}selected{% endif %}>[JPC01] J1939 Power Cord 9 Pin</option>
+                    <option value="OBD Power Cord w/type C Connector 12v" {% if vehicle.adapter == "OBD Power Cord w/type C Connector 12v" %}selected{% endif %}>[OPC01] OBD Power Cord w/type C Connector 12v</option>
+                </select>
+            </div>
+        </div>
+        <div class='value'>
+            <div class='field'>Camera ID s/n</div>
+            <div class='value'>
+                {{ vehicle.cameraId }}
+                {# <input name="cameraId[{{ vehicle.vin }}]" class="cameraId" value="{{ vehicle.cameraId }}"> #}
+            </div>
+        </div>
+        <hr>
+    {% endfor %}
+    <br>
+    <input type="submit" value="Submit Changes"/>
+    </form>
+    <br><br><br><br><br><br>
+
+{% endblock %}

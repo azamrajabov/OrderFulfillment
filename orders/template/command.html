@@ -1,0 +1,270 @@
+{% extends "layout.html" %}
+{% block title %}Command page{% endblock %}
+{% block head %}
+    {{ super() }}
+<style type="text/css">
+table.commandTable {
+    width: 100%;
+}
+table.commandTable td.samples {
+    width: 20%;
+    vertical-align: top;
+}
+table.commandTable td.samples ul li {
+    font-weight: 25px;
+}
+table.commandTable td.execute {
+    width: 80%;
+    vertical-align: top;
+}
+table.commandTable td.execute textarea {
+    width: 100%;
+    height: 500px;
+}
+table.commandTable td.execute .change_order_address_form textarea,
+table.commandTable td.execute .change_order_status_form textarea {
+    width: 100%;
+    height: 300px;
+}
+table.commandTable td.execute .order_id_section input {
+    width:100%;
+    padding: 5px 0;
+    margin: 5px 0;
+}
+table.commandTable td.execute .order_id_section {
+    padding: 0px;
+}
+
+table.commandTable td.execute select {
+    width: 50%;
+    padding:5px;
+}
+select {
+    padding: 5px 0px;
+    width: 100%;
+    margin: 3px;
+}
+
+</style>
+{% endblock %}
+{% block content %}
+    <br>
+    <h1>Command</h1>
+    <br>
+    {% if result %}
+        <div class="result" style="text-align: center; background-color: #ffffcc; font-size: 30px;padding:20px;margin:20px;">
+            {{ result }}
+        </div>
+    {% endif %}
+    <table class="commandTable">
+        <tr>
+            <td class="samples">
+                <ul style="padding-left:0px;list-style-type: none;">
+                    <li>
+                        <a href="#" class="request_order">Request an Order</a>
+                    </li>
+                    <li>
+                        <a href="#" class="change_address">Change Order Address</a>
+                    </li>
+                    <li>
+                        <a href="#" class="change_status">Change Order Status</a>
+                    </li>
+                    <li>
+                        <a href="/{{env_name}}/shipping_parts" class="ship_parts">Shipping Parts</a>
+                    </li>
+                    <li>
+                        <a href="/{{env_name}}/download_report" class="download_report">Download Report</a>
+                    </li>
+                    <li>
+                        <a href="/{{env_name}}/file_manager" class="file_manager">File Manager</a>
+                    </li>
+                </ul>
+            </td>
+            <td class="execute">
+                <div class="request_an_order_form">
+                <form method="post" action="/{{env_name}}/command?command=request_an_order">
+                    <h3>Request an Order</h3>
+                    <div class="form-group">
+                        <div class="form-group">
+                            <label for="OrderId">OrderId</label>
+                            <input type="text" class="form-control" placeholder="OrderId" value="" required name="orderId">
+                        </div>
+                      <div class="vehicles">
+                        <label for="OrderId">Vehicle</label>
+                        <input type="text" class="form-control" name="vin[]" required placeholder="VIN">
+                        <input type="text" class="form-control" name="vehicleId[]" required placeholder="vehicleId"><br>
+                      </div>
+                      <a href="#" class="add-vehicle">+ Add Vehicle</a>
+                    </div>
+                    <div class="form-group">
+                      <label for="Adrdess">Business Name</label>
+                      <input type="text" class="form-control" placeholder="Business Name" value="" required name="business">
+                    </div>
+                    <div class="form-group">
+                      <label for="Adrdess">Name</label>
+                      <input type="text" class="form-control" placeholder="Name" value="" required name="name">
+                    </div>
+                    <div class="form-group">
+                      <label for="Adrdess">Address</label>
+                      <input type="text" class="form-control" placeholder="Address" value="" required name="addressLine1">
+                    </div>
+                    <div class="form-group">
+                      <label for="addressLine2">Address Line2</label>
+                      <input type="text" class="form-control" placeholder="Address Line 2" value="" name="addressLine2">
+                    </div>
+                    <div class="form-group">
+                      <label for="zipCode">City</label>
+                      <input type="text" class="form-control" placeholder="City" value="" required name="city">
+                    </div>
+                    <div class="form-group">
+                      <label for="zipCode">zipCode</label>
+                      <input type="text" class="form-control" placeholder="zipCode" value="" required name="zipCode">
+                    </div>
+                    <div class="form-group">
+                      <label for="state">State</label>
+                      <input type="text" class="form-control" placeholder="TX" value="" required name="state">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                  </form>
+                </div>
+                {#
+                <div class="request_an_order_form">
+                <form method="post" action="/{{env_name}}/command?command=request_an_order">
+                    <h3>Request an Order</h3>
+                    <div class="order_id_section" style="display:none"><strong>Order ID</strong><br>
+                        <input type="input" name="order_id" class="order_id"/>
+                    </div>
+                    <textarea name="command_json" class="command"></textarea>
+                    <br>
+                    <div style="text-align: center">
+                        <input type="submit" name="execute" value="Request an Order" formtarget="_blank"/>
+                    </div>
+                </form>
+                </div>
+                #}
+                <div class="change_order_status_form" style="display: none">
+                <form method="post" action="/{{env_name}}/command?command=change_order_status">
+                    <h3>Change Order Status</h3>
+                    <div class="order_id_section"><strong>Order ID</strong><br>
+                        <input type="input" name="order_id" class="order_id"/>
+                    </div>
+                    <div class="get_status"><a href="#">Load Order Status</a></div>
+                    <br>
+                    <select name="order_status" class="order_status">
+                        <option value=''>Select Status</option>
+                        <option value='Unshipped'>Unshipped</option>
+                        <option value='Fulfilled'>Fulfilled (Shipped)</option>
+                        <option value='Delivered'>Delivered</option>
+                        <option value='Delayed'>Delayed</option>
+                        <option value='Returned'>Refused</option>
+                        <option value='Failed'>Failed</option>
+                        <option value='Trash'>Trash</option>
+                    </select>
+                    <br><br>
+                    <div style="text-align: center">
+                        <input type="submit" name="execute" value="Change Order Status"/>
+                    </div>
+                </form>
+                </div>
+                <div class="change_order_address_form" style="display: none">
+                <form method="post" action="/{{env_name}}/command?command=change_order_address">
+                    <h3>Change Order Address</h3>
+                    <div class="order_id_section"><strong>Order ID</strong><br>
+                        <input type="input" name="order_id" class="order_id"/>
+                    </div>
+                    <div class="get_address"><a href="#">Load Order Address</a></div>
+                    <br>
+                    <textarea name="command_json" class="command"></textarea>
+                    <br>
+                    <div style="text-align: center">
+                        <input type="submit" name="execute" value="Change Address"/>
+                    </div>
+                </form>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+
+<script type="text/javascript">
+jQuery('.add-vehicle').click(function(){
+    vehicles_input = jQuery(".vehicles").html();
+    jQuery(this).before( vehicles_input );
+    });
+jQuery('a.request_order').click(function(){
+    jQuery(".request_an_order_form").show();
+    jQuery(".change_order_address_form").hide();
+    jQuery(".change_order_status_form").hide();
+    jQuery(".request_an_order_form .endpoint").val("{{app_url}}/request_order")
+    jQuery(".request_an_order_form .command").val(`{
+    "orderId": "b2fcf908-7147-47f8-bb9a-5875ba515087UNIQUE_NUMBER",
+    "address":
+    {
+        "business": "Summit Transportation",
+        "name": "Person Name",
+        "addressLine1": "6909 Harry Hines Blvd",
+        "addressLine2": "Suite 100",
+        "city": "Dallas",
+        "state": "TX",
+        "zipCode" : "75235"
+    },
+    "vehicles":
+    [
+        {
+            "vehicleId": "91545d63-a983-4e9f-8ca4-e5aba1b23c3bTEST1",
+            "vin": "1XKYD49XXMJ458292"
+        },
+        {
+            "vehicleId": "91545d63-a983-4e9f-8ca4-e5aba1b23c3bTEST2",
+            "vin": "1XKAD48X0DJ345051"
+        }
+    ]
+}`);
+return false;
+});
+jQuery('a.change_status').click(function(){
+    jQuery(".request_an_order_form").hide();
+    jQuery(".change_order_address_form").hide();
+    jQuery(".change_order_status_form").show();
+    jQuery(".change_order_status_form .endpoint").val("{{app_url}}/command?change_status=1")
+    jQuery(".change_order_status_form .command").val(`{
+    "orderStatus": ""
+}`);
+return false;
+});
+jQuery('a.change_address').click(function(){
+    jQuery(".request_an_order_form").hide();
+    jQuery(".change_order_status_form").hide();
+    jQuery(".change_order_address_form").show();
+    jQuery(".change_order_status_form .endpoint").val("{{app_url}}/command?change_status=1")
+    jQuery(".change_order_status_form .command").val(`{
+    "orderStatus": ""
+}`);
+return false;
+});
+jQuery('.get_address a').click(function(){
+    var order_id = jQuery(".change_order_address_form input.order_id").val()
+    jQuery.ajax({
+      url: "{{app_url}}/command?command=get_address&order_id="+order_id
+    }).done(function(data) {
+        var data_json = JSON.stringify(data, undefined, 2);
+      jQuery('.change_order_address_form .command').val(data_json)
+    });
+});
+
+jQuery('.get_status a').click(function(){
+    var order_id = jQuery(".change_order_status_form input.order_id").val()
+    jQuery.ajax({
+      url: "{{app_url}}/command?command=get_status&order_id="+order_id
+    }).done(function(data) {
+        // var data_json = JSON.stringify(data, undefined, 2);
+    //   jQuery('.change_order_status_form .command').val(data)
+      jQuery('.change_order_status_form .order_status').val(data);
+    });
+});
+
+jQuery( document ).ready(function(){
+    $( "a.request_order" ).trigger( "click" );
+})
+</script>
+{% endblock %}

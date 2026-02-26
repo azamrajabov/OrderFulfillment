@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+@media print {
+body, html {
+margin-top:0px;
+padding-top:0px;
+}
+}
+/* Define the label size (4" x 6") */
+@media print {
+  html:first
+  {
+      zoom: 200%;
+  }
+  @page {
+    size: 4in 6in;
+    margin: 0px;
+    padding: 0px
+  }
+  @page:first {
+    transform:scale(.5);
+  }
+  .pagebreak {
+    clear: both;
+    page-break-after: always;
+  }
+  .label-image {
+    /*width: 100% !important;*/
+    margin-left: 10px;
+    margin-top: 70px;
+  }
+  .slip {
+    margin-top: 100px;
+  }
+}
+/* Style for the label content */
+.label {
+  margin: 0;
+}
+
+/* Style for the image */
+.label-image {
+  width: 100%;
+  padding-top: 20px;
+  transform: translatex(calc(50vw - 50%)) translatey(calc(50vh - 50%)) rotate(90deg);
+}
+.slip {
+  padding-top: 10px;
+  padding-left: 30px;
+}
+h4 {
+  font-size: 20px;
+  padding-bottom: 1px;
+  margin-bottom: 0px;
+}
+</style>
+    </head>
+<body style="margin: 0px">
+    {% if shipping_label %}
+        <div class="label">
+            <img class="label-image" src="{{shipping_label}}">
+        </div>
+    {% endif %}
+    {% set order_cnt = order.vehicles|length %}
+    {% if order_cnt %}
+      {% for vehicle in order.vehicles -%}
+        <div class="pagebreak"></div>
+        <br>
+        <div class="slip">
+          <div class='logo'>
+            <h2><strong>Order Fulfillment</strong></h2>
+            </div>
+          <div class="order_details">
+            <h2 style="padding-top: 20px; padding-left: 100px;padding-bottom: 10px">What's in the Box</h2>
+            <h4><strong>Ship date:</strong> {% set order_date = order.time_stamp[0:10] %}{{ order_date|order_date_formatter }} </h4>
+            <h4><strong>UPS Tracking #:</strong> {{ order.trackingId }}</h4>
+            {# <br>
+            <h4><strong>Order ID</strong></h4>
+            <h4 style="font-size:19px">{{ order.orderId }}</h4>
+            #}
+            <br>
+            <h4><strong>Camera {{ loop.index }}</strong></h4>
+            <h4><strong>Truck Model:</strong>
+              {% set decoded_values = vehicle.vindecoded_values.split(',') %}
+              {{ decoded_values[0] }} {{ decoded_values[1] }}
+            </h4>
+            <h4><strong>VIN:</strong> XXXXXXXXXXXXX{{ vehicle.vin[-4:] }} </h4>
+            <h4><strong>Camera S/N:</strong> {{ vehicle.cameraId }}</h4>
+            <h4><strong>Adaptor Type:</strong> {{ vehicle.adapter }}</h4>
+            <br>
+            <h2><strong>&nbsp;&nbsp;**************************</strong></h2>
+            <h2><strong>&nbsp;&nbsp;INSTALL BY   {{ order.activate_by_date }}</strong></h2>
+            <h2><strong>&nbsp;&nbsp;**************************</strong></h2>
+            <h4><i>Please install the camera in the<br>
+            designated vehicle.</i></h4>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% set parts_cnt = order.parts|length %}
+    {% if parts_cnt %}
+        <div class="pagebreak"></div>
+        <br>
+        <div class="slip">
+          <div class='logo'><h2><strong>Order Fulfillment</strong></h2></div>
+          <div class="order_details">
+            <h2 style="padding-top: 20px; padding-left: 100px;padding-bottom: 10px">What's in the Box</h2>
+            <h4><strong>Ship date:</strong> {% set order_date = order.time_stamp[0:10] %}{{ order_date|order_date_formatter }} </h4>
+            <h4><strong>UPS Tracking #:</strong> {{ order.trackingId }}</h4>
+            <br>
+            <h4><strong>Order ID</strong></h4>
+            <h4 style="font-size:19px">{{ order.orderId }}</h4>
+            <br>
+            {% set cnt = order.parts|length %}
+            {% for part in order.parts -%}
+              <h4>{{ loop.index }}. SKU {{ part.Id }}</h4>
+              <h4>{{ part.name }}</h4>
+              <br>
+              {% if cnt > 1 and cnt > loop.index %}
+                <hr>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+    {% endif %}
+<script type="text/javascript">
+    window.print()
+    window.onbeforeunload = function () {
+        if (window.opener && !window.opener.closed) {
+            window.opener.location.reload();
+        }
+    }
+</script>
+</body>
+</html>

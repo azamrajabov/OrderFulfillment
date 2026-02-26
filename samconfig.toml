@@ -1,0 +1,13 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "order-fulfillment-app-serverless"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-bfj9hdvn6sxu"
+s3_prefix = "order-fulfillment-app-serverless"
+region = "us-east-1"
+confirm_changeset = false
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+disable_rollback = true
+parameter_overrides = "AppName=\"orderFulfillmentApp\" ClientDomains=\"order-fulfillment-app\" AdminEmail=\"azamcoder@gmail.com\" AddGroupsToScopes=\"false\""
