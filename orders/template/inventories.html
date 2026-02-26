@@ -1,0 +1,91 @@
+{% extends "layout.html" %}
+{% block title %}Inventories{% endblock %}
+{% block head %}
+    {{ super() }}
+<style type="text/css">
+select {
+    padding: 5px 0px;
+    width: 100%;
+}
+input {
+    padding: 4px;
+    width: 100%;
+}
+input:invalid {
+  border: 2px dashed red;
+}
+
+input:invalid:required {
+  border: 2px dashed red;
+}
+
+input:valid {
+  border: 2px solid black;
+}
+</style>
+{% endblock %}
+{% block content %}
+    <br>
+    <h1>Inventories</h1>
+    <br>
+    <table class="ordersTable">
+        <tr><th>Id #</th><th>Model</th><th>Name</th><th>Type</th><th>Quantity</th></tr>
+    {% for inventory in inventories -%}
+        <tr>
+            <td style="text-align:center" width="180">{{ inventory.Id }}</td>
+            <td>{{ inventory.model }}</td>
+            <td>{{ inventory.name }}</td>
+            <td>{{ inventory.type }}</td>
+            <td>{{ inventory.quantity }}</td>
+        </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+<h4>Action</h4>
+<form method="post" action='/{{ env_name }}/inventories' style="width:50%">
+    <div style="padding-bottom: 5px">
+    <select name="inventory_id" required>
+        <option value="">Select Inventory</option>
+        {% for inventory in inventories -%}
+            <option value="{{ inventory.Id }}">{{ inventory.model }} {{ inventory.name }} - {{ inventory.type }}</option>
+        {% endfor %}
+    </select>
+    </div>
+    <div style="padding-bottom: 5px">
+    <input type="text" name="quantity" placeholder="Quantity" required/>
+    </div>
+    <div style="padding-bottom: 5px">
+    <select name="action" required>
+        <option value="">Select Action</option>
+        <option value="Reduce">Reduce</option>
+        <option value="Add">Add</option>
+    </select>
+    </div>
+    <div style="padding-bottom: 5px">
+    <input type="text" name="notes" placeholder="Notes" required/>
+    </div>
+    <div style="padding-bottom: 5px">
+    <input type="submit" value='Submit'>
+    </div>
+</form>
+
+<hr>
+
+<h4>Action Log</h4>
+    <br>
+    <table class="ordersTable">
+        <tr><th>Time</th><th>Type</th><th>Action</th><th>Content</th><th>Action By</th></tr>
+    {% for log in logs -%}
+        <tr>
+            <td>{{ log.ActionDateTime }}</td>
+            <td>{{ log.ActionType }}</td>
+            <td>{{ log.ActionName }}</td>
+            <td>{{ log.ActionContent }}</td>
+            <td>{{ log.ActionBy }}</td>
+        </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

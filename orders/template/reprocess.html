@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block title %}Returned Orders{% endblock %}
+{% block content %}
+    <br>
+    <h1 style="font-size: 50px; text-align: center">Reprocess Order #{{ order.order_num }}</h1>
+    <br>
+    <form action="/{{ env_name }}/reprocess" method="POST" id="scanForm">
+      <input type="hidden" name="order_id" value="{{ order.orderId }}">
+      <div class="form-group">
+        <label for="Adrdess">Address</label>
+        <input type="text" class="form-control" placeholder="Address" value="{{ order.address.addressLine1 }}" name="addressLine1">
+      </div>
+      <div class="form-group">
+        <label for="addressLine2">Address Line2</label>
+        <input type="text" class="form-control" placeholder="Address Line 2" value="{{ order.address.addressLine2 }}" name="addressLine2">
+      </div>
+      <div class="form-group">
+        <label for="zipCode">City</label>
+        <input type="text" class="form-control" placeholder="City" value="{{ order.address.city }}" name="city">
+      </div>
+      <div class="form-group">
+        <label for="zipCode">zipCode</label>
+        <input type="text" class="form-control" placeholder="zipCode" value="{{ order.address.zipCode }}" name="zipCode">
+      </div>
+      <div class="form-group">
+        <label for="state">State</label>
+        <input type="text" class="form-control" placeholder="TX" value="{{ order.address.state }}" name="state">
+      </div>
+      <div class="form-group">
+        <br>
+        <input type="checkbox" value="1" checked name="validate_address"> Validate address
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock %}

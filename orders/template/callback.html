@@ -1,0 +1,32 @@
+<html><head></head><body><script>
+var burl = window.location.href
+burl = burl.replace("callback#", "callback?");
+const url = new URL(burl);
+
+// Extract access_token and id_token from the URL
+const queryParams = new URLSearchParams(url.search);
+const accessToken = queryParams.get('access_token');
+const idToken = queryParams.get('id_token');
+
+const access_token = accessToken;
+const id_token = idToken;
+
+// Now you can use the access_token and id_token as needed
+// console.log('Access Token:', access_token);
+// console.log('ID Token:', id_token);
+// JavaScript code on the client-side
+
+const setCookie = (name, value) => {
+  const expires = new Date(Date.now() + 60 * 60 * 1000).toUTCString(); // set 1 hours should be same as token exp
+  document.cookie = `${name}=${value}; expires=${expires}; path=/`;
+};
+if (access_token == null) {
+    window.location.href = '{{ login_url }}';
+} else {
+    // After successful login, save the tokens in cookies
+    setCookie('access_token', access_token); // Adjust the expiration as needed
+    setCookie('id_token', id_token); // Adjust the expiration as needed
+    
+    window.location.href = '/{{ env_name }}/{{ redirect_page }}';
+}
+</script></body></html>

@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+{% block title %}Orders List{% endblock %}
+{% block content %}
+    <br>
+    <h1>Unshipped Orders</h1>
+<div class="export" style="text-align: right;margin-bottom: 15px;">
+        <a href="/{{ env_name }}/order?export=Unshipped" style="padding: 12px 23px; font-size:18px;background-color: #efefef;"  download="unshipper_orders.csv">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet" viewBox="0 0 16 16">
+  <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5v2zM3 12v-2h2v2H3zm0 1h2v2H4a1 1 0 0 1-1-1v-1zm3 2v-2h3v2H6zm4 0v-2h3v1a1 1 0 0 1-1 1h-2zm3-3h-3v-2h3v2zm-7 0v-2h3v2H6z"/>
+</svg> Export List
+        </a>
+    </div>
+    <table class="ordersTable">
+        <tr><th>Order #</th><th>Order Date</th><th>Order ID</th><th>Business Name</th><th>Shipping Address</th><th>Camera SKU Adaptor SKU</th><th>Shipping Label</th><th>Comments</th></tr>
+    {% for order in orders -%}
+        <tr>
+            <td style="text-align:center" valign="top"><a target="_blank" href="/{{ env_name }}/order?order_id={{ order.orderId }}">{{ order.order_num }}</a></td>
+            <td valign="top">{% set order_date = order.time_stamp[0:10] %}{{ order_date|order_date_formatter }}</td>
+            <td valign="top"><a class="orderWindow" href="/{{ env_name }}/scan?order_id={{ order.orderId }}">{{ order.orderId[-12:]}}</a>
+            <span class="copyOrderId" order_id="{{ order.orderId }}">
+            <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M384 336H192c-8.8 0-16-7.2-16-16V64c0-8.8 7.2-16 16-16l140.1 0L400 115.9V320c0 8.8-7.2 16-16 16zM192 384H384c35.3 0 64-28.7 64-64V115.9c0-12.7-5.1-24.9-14.1-33.9L366.1 14.1c-9-9-21.2-14.1-33.9-14.1H192c-35.3 0-64 28.7-64 64V320c0 35.3 28.7 64 64 64zM64 128c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H256c35.3 0 64-28.7 64-64V416H272v32c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V192c0-8.8 7.2-16 16-16H96V128H64z"/></svg>
+            </span>
+            <br><small><strong>{{ order.order_type }}</strong></small>
+            </td>
+            <td valign="top">{{ order.address.business }} - {{ order.address.name }}</td>
+            <td valign="top">{{ order.address.addressLine1 }} {{ order.address.addressLine2 }}<br>{{ order.address.city }} {{ order.address.state }} {{ order.address.zipCode }}</td>
+            <td valign="top">
+                <table width="100%" class="adapterCamera">
+                    {% for vehicle in order.vehicles -%}
+                        <tr>
+                        {#
+                        <td width="50%"><strong>{{ vehicle.adapter }}</strong></td>
+                        <td width="50%"><strong>{{ vehicle.cameraId }}</strong></td>
+                        #}
+                        <td width="50%"><strong>A1K04</strong></td>
+                        <td width="50%"><strong>
+                            {% if vehicle.adapter == 'OBD -> J1708 Adapter 6 Pin' %}
+                                ADP01
+                            {% elif vehicle.adapter == 'OBD Power Cord w/type C Connector 12v' %}
+                                OPC01
+                            {% elif vehicle.adapter == 'J1939 Power Cord 9 Pin' %}
+                                JPC01
+                            {% else %}
+                                {{ vehicle.adapter }}
+                            {% endif %}
+                        </strong></td>
+                        </tr>
+                    {% endfor %}
+                    {% for part in order.parts -%}
+                        <tr>
+                        <td width="50%"><strong>{{ part.model }}</strong></td>
+                        <td width="50%"><strong>{{ part.name }}</strong></td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </td>
+            <td valign="top">
+                {% if order.label_image %}
+                <a class="orderWindow" href="/{{ env_name }}/print-label?order_id={{ order.orderId }}">
+                    <img src="{{order.label_image}}" width="150">
+                </a>
+                {% endif %}
+            </td>
+            <td valign="top">
+                <div class='order_comments_{{ order.order_num }}'>{{ order.comments }}</div>
+                <a data-toggle="modal" href="#" data-target="#orderCommentsModal" data-order_num="{{ order.order_num }}" data-orderid="{{ order.orderId }}">Comments</button>
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+<script type="text/javascript">
+jQuery('.shippingLabel').click(function(){
+    var shippingLabelImg = ''
+    var myWindow = window.open("", "MsgWindow", "width=1400,height=800,scrollbars=1");
+    shippingLabelImg = jQuery(this).find('img').attr('src');
+    myWindow.document.write("<img src='"+shippingLabelImg+"'>");
+});
+jQuery('.orderWindow').click(function(){
+    var link = jQuery(this).attr('href');
+    var w = 1400;
+    var h = 800;
+    var left = (screen.width/2)-(w/2);
+    var top = (screen.height/2)-(h/2);
+
+    const newWindow = window.open(link, '_blank', 'status=1,width='+w+', height='+h+', top='+top+', left='+left);
+     return false;
+});
+jQuery('.copyOrderId').click(function(){
+    var orderId = jQuery(this).attr('order_id');
+    navigator.clipboard.writeText(orderId);
+    jQuery(this).html('<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M208 0H332.1c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9V336c0 26.5-21.5 48-48 48H208c-26.5 0-48-21.5-48-48V48c0-26.5 21.5-48 48-48zM48 128h80v64H64V448H256V416h64v48c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V176c0-26.5 21.5-48 48-48z"/></svg>');
+});
+
+</script>
+{% endblock %}

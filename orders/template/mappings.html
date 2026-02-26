@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block title %}Mapping List{% endblock %}
+{% block content %}
+    <br>
+    <h1>Adapter Mapping</h1>
+    <br>
+    <table class="ordersTable">
+        <tr><th>Id #</th><th>Year</th><th>Make</th><th>Engine</th><th style="text-align: center">Adapter</th><th>Note</th></tr>
+    {% for mapping in mappings -%}
+        <tr>
+            <td style="text-align:center"><a target="_blank" href="/{{ env_name }}/mapping?mapping_id={{ mapping.Id }}">{{ mapping.Id }}</a></td>
+            <td>{{ mapping.Year }}</td>
+            <td>{{ mapping.Make }}</td>
+            <td>{{ mapping.Engine }}</td>
+            <td>{{ mapping.Port }}</td>
+            <td>{{ mapping.Note }}</td>
+        </tr>
+    {% endfor %}
+<tr>
+<form method="post" action='/{{ env_name }}/mapping'>
+    <td style="text-align:center"><input type="submit" value='Create a New Mapping'></td>
+    <td><input type="text" name="vehicle[Year]" placeholder="Year" required/></td>
+    <td><input type="text" name="vehicle[Make]" placeholder="Make" required/></td>
+    <td><input type="text" name="vehicle[Engine]" placeholder="Engine" required/></td>
+    <td><select name="vehicle[Port]" required>
+        <option value="">Select Adapter</option>
+        <option value="6 Pin">6 Pin</option>
+        <option value="9 Pin Type 11">9 Pin Type 11</option>
+        <option value="OBD 11 (16 pin)">OBD 11 (16 pin)</option>
+        </select>
+    </td>
+    <td><input type="text" name="vehicle[Note]" placeholder="Note"/></td>
+</form>
+</tr>
+</table>
+{% endblock %}

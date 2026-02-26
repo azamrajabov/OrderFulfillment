@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+{% block title %}Scan Camera Items{{ order.orderId }}{% endblock %}
+{% block head %}
+    {{ super() }}
+<style>
+.field {
+    font-weight: bold;
+    border-bottom: 2px rgba(0,123,255,.5) solid;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    text-align: center;
+    font-size: 40px;
+}
+.value {
+    padding: 5px 5px 5px 10px;
+    text-align: center;
+    font-size: 40px;
+}
+.value input {
+    padding: 4px;
+    width: 800px;
+    font-size: 40px;
+}
+.resetCode:hover {
+    cursor: pointer;
+}
+td.menu {
+    display: none;
+}
+</style>
+{% endblock %}
+{% block content %}
+    <br>
+    <h1 style="font-size: 50px; text-align: center">ORDER #{{ order.order_num }}</h1>
+    <br>
+    <form action="/{{ env_name }}/fulfill" method="POST" id="scanForm">
+    <input type="hidden" name="order_id" value="{{ order.orderId }}">
+    {% for vehicle in order.vehicles -%}
+        <div class='field'>
+            {% if vehicle.adapter == 'OBD -> J1708 Adapter 6 Pin' %}
+                ADP01
+            {% elif vehicle.adapter == 'OBD Power Cord w/type C Connector 12v' %}
+                OPC01
+            {% elif vehicle.adapter == 'J1939 Power Cord 9 Pin' %}
+                JPC01
+            {% else %}
+                {{ vehicle.adapter }}
+            {% endif %}
+        </div>
+        <div class='value'>
+            <input name="cameraId[{{ vehicle.vin }}]" class="cameraId" placeholder="S/N" autofocus> <span class='resetCode'>&#8513;</span>
+        </div>
+        <hr>
+    {% endfor %}
+    {% for part in order.parts -%}
+        <div class='field'>({{ part.model }}) {{ part.Id }}</div>
+        <hr>
+    {% endfor %}
+    <div class='value'>
+        <input type="submit" value="PRINT LABEL"/>
+    </div>
+    </form>
+<script type="text/javascript">
+var inputBoxIndex = 0
+jQuery('#scanForm').submit(function(){
+    inputBoxIndex += 1;
+    var obj = jQuery("input.cameraId")[inputBoxIndex];
+    if (obj == undefined) {
+        return validateForm();
+    }
+    obj.focus();
+    return false;
+});
+function validateForm() {
+    var anyEmpty = 0;
+    jQuery("input.cameraId").each(function(){
+        if (jQuery(this).val()=='') {
+            anyEmpty += 1
+        }
+    });
+    if (anyEmpty > 0) {
+        alert('Please Scan All Items!');
+        return false;
+    }
+    return true;
+}
+jQuery('.resetCode').click(function(){
+    var scanInput = jQuery(this).parent().find('.cameraId')
+    scanInput.val('');
+    scanInput.focus()
+});
+</script>
+{% endblock %}

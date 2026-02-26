@@ -1,0 +1,411 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  order-fulfillment-application
+
+  SAM Template for order-fulfillment-application
+
+Globals:
+  Function:
+    Timeout: 600
+    MemorySize: 128
+
+Parameters:
+  CognitoAppClientId:
+    Type: String
+  SecurityGroupId:
+    Type: String
+  SubnetId1:
+    Type: String
+  SubnetId2:
+    Type: String
+  Environment:
+    Type: String
+
+Resources:
+  LibraryLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: library/
+      CompatibleRuntimes:
+        - python3.12
+      Description: Order Fulfillment Library layer
+    Metadata:
+      BuildMethod: python3.12
+
+  ShipingLabelsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+
+  OrderFulfillmentFilesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+
+  AuditTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: Id
+          AttributeType: S
+        - AttributeName: ActionTime
+          AttributeType: N
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+        - AttributeName: ActionTime
+          KeyType: "RANGE"
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  CamOrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: orderId
+          AttributeType: S
+        - AttributeName: order_num
+          AttributeType: N
+        - AttributeName: orderStatus
+          AttributeType: S
+        - AttributeName: order_type
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orderId
+          KeyType: HASH
+        - AttributeName: order_num
+          KeyType: "RANGE"
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      GlobalSecondaryIndexes:
+        - IndexName: OrderStatusIndex
+          KeySchema:
+            - AttributeName: orderStatus
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: OrderTypeIndex
+          KeySchema:
+            - AttributeName: order_type
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  VehicleAdapterMappingTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: Id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  InventoriesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: Id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  OrdersAppFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: orders/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      MemorySize: 3008
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref SecurityGroupId
+        SubnetIds:
+          - !Ref SubnetId1
+          - !Ref SubnetId2
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref LibraryLayer
+      Policies:
+        - AWSLambdaExecute
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - "dynamodb:*"
+              Resource:
+                - !GetAtt CamOrdersTable.Arn
+                - !GetAtt VehicleAdapterMappingTable.Arn
+                - !GetAtt InventoriesTable.Arn
+                - !GetAtt AuditTable.Arn
+            - Effect: Allow
+              Action:
+                - "dynamodb:Query"
+              Resource:
+                - !Sub "${CamOrdersTable.Arn}/index/OrderStatusIndex"
+                - !Sub "${CamOrdersTable.Arn}/index/OrderTypeIndex"
+            - Effect: Allow
+              Action:
+                - "secretsmanager:GetSecretValue"
+              Resource:
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:prod/order-fulfillment/secrets-*"
+            - Effect: Allow
+              Action:
+                - "logs:CreateLogGroup"
+                - "logs:CreateLogStream"
+                - "logs:PutLogEvents"
+              Resource: "arn:aws:logs:*:*:*"
+        - S3CrudPolicy:
+            BucketName: !Ref ShipingLabelsBucket
+      Environment:
+        Variables:
+          ORDERS_TABLE: !Ref CamOrdersTable
+          MAPPINGS_TABLE: !Ref VehicleAdapterMappingTable
+          INVENTORIES_TABLE: !Ref InventoriesTable
+          AUDIT_TABLE: !Ref AuditTable
+          APP_TEMP_FOLDER: /tmp/
+          COGNITO_URL: https://order-fulfillment.auth.us-east-1.amazoncognito.com
+          # COGNITO_APP_CLIENT_ID: 6mn742cjmopeumrdieom582pb0
+          COGNITO_APP_CLIENT_ID: !Ref CognitoAppClientId
+          COGNITO_USER_POOL_ID: us-east-1_2vG32aD30
+          COGNITO_LOGIN_URL: "%s/oauth2/authorize?client_id=%s&response_type=token&scope=email+openid+phone&redirect_uri=%s"
+          COGNITO_LOGOUT_URL: "%s/logout?client_id=%s&logout_uri=%s"
+          S3_SHIPPING_LABELS: !Ref ShipingLabelsBucket
+          APP_ENVIRONMENT: !Ref Environment
+          S3_ORDER_FULFILLMENT_FILES: !Ref OrderFulfillmentFilesBucket
+      Events:
+        Callback:
+          Type: Api
+          Properties:
+            Path: /callback
+            Method: get
+        UPSRedirect:
+          Type: Api
+          Properties:
+            Path: /upsredirect
+            Method: get
+        Orders:
+          Type: Api
+          Properties:
+            Path: /orders
+            Method: get
+        OrderGet:
+          Type: Api
+          Properties:
+            Path: /order
+            Method: get
+        OrderPost:
+          Type: Api
+          Properties:
+            Path: /order
+            Method: post
+        Shipped:
+          Type: Api
+          Properties:
+            Path: /shipped
+            Method: get
+        ScanGet:
+          Type: Api
+          Properties:
+            Path: /scan
+            Method: get
+        PrintLabel:
+          Type: Api
+          Properties:
+            Path: /print-label
+            Method: get
+        FulFillOrder:
+          Type: Api
+          Properties:
+            Path: /fulfill
+            Method: post
+        RequestOrder:
+          Type: Api
+          Properties:
+            Path: /request_order
+            Method: post
+        RequestReturnOrder:
+          Type: Api
+          Properties:
+            Path: /request_return_order
+            Method: post
+        MappingGet:
+          Type: Api
+          Properties:
+            Path: /mapping
+            Method: get
+        MappingPost:
+          Type: Api
+          Properties:
+            Path: /mapping
+            Method: post
+        DeliveredGet:
+          Type: Api
+          Properties:
+            Path: /delivered
+            Method: get
+        ReturnedGet:
+          Type: Api
+          Properties:
+            Path: /returned
+            Method: get
+        FailedGet:
+          Type: Api
+          Properties:
+            Path: /failed
+            Method: get
+        DelayedGet:
+          Type: Api
+          Properties:
+            Path: /delayed
+            Method: get
+        CommandGet:
+          Type: Api
+          Properties:
+            Path: /command
+            Method: get
+        CommandPost:
+          Type: Api
+          Properties:
+            Path: /command
+            Method: post
+        ReProcessGet:
+          Type: Api
+          Properties:
+            Path: /reprocess
+            Method: get
+        ReProcessPost:
+          Type: Api
+          Properties:
+            Path: /reprocess
+            Method: post
+        CheckShippedOrders:
+          Type: Api
+          Properties:
+            Path: /check_shipped_orders
+            Method: get
+        Tracking:
+          Type: Api
+          Properties:
+            Path: /tracking
+            Method: get
+        OrderStatus:
+          Type: Api
+          Properties:
+            Path: /order_status
+            Method: get
+        InventoriesGet:
+          Type: Api
+          Properties:
+            Path: /inventories
+            Method: get
+        InventoriesPost:
+          Type: Api
+          Properties:
+            Path: /inventories
+            Method: post
+        ShippingPartsGet:
+          Type: Api
+          Properties:
+            Path: /shipping_parts
+            Method: get
+        ShippingPartsPost:
+          Type: Api
+          Properties:
+            Path: /shipping_parts
+            Method: post
+        DownloadReportGet:
+          Type: Api
+          Properties:
+            Path: /download_report
+            Method: get
+        DownloadReportPost:
+          Type: Api
+          Properties:
+            Path: /download_report
+            Method: post
+        FileManagerGet:
+          Type: Api
+          Properties:
+            Path: /file_manager
+            Method: get
+        FileManagerPost:
+          Type: Api
+          Properties:
+            Path: /file_manager
+            Method: post
+        MyIPAdress:
+          Type: Api
+          Properties:
+            Path: /my_ip
+            Method: get
+        CommentsGet:
+          Type: Api
+          Properties:
+            Path: /comments
+            Method: get
+        CommentsPost:
+          Type: Api
+          Properties:
+            Path: /comments
+            Method: post
+        ReturnsGet:
+          Type: Api
+          Properties:
+            Path: /returns
+            Method: get
+        MissingOrdersDataGet:
+          Type: Api
+          Properties:
+            Path: /missingdata
+            Method: get
+
+  ApplicationResourceGroup:
+    Type: AWS::ResourceGroups::Group
+    Properties:
+      Name:
+        Fn::Join:
+        - ''
+        - - ApplicationInsights-SAM-
+          - Ref: AWS::StackName
+      ResourceQuery:
+        Type: CLOUDFORMATION_STACK_1_0
+  ApplicationInsightsMonitoring:
+    Type: AWS::ApplicationInsights::Application
+    Properties:
+      ResourceGroupName:
+        Fn::Join:
+        - ''
+        - - ApplicationInsights-SAM-
+          - Ref: AWS::StackName
+      AutoConfigurationEnabled: 'true'
+    DependsOn: ApplicationResourceGroup
+
+Outputs:
+  Orders:
+    Description: Orders
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/orders/"
+  OrdersAppFunction:
+    Description: Orders Lambda Function ARN
+    Value: !GetAtt OrdersAppFunction.Arn
