@@ -31,26 +31,14 @@ class Orders:
         "dev": {
             "quote_endpoint": "https://upscapi.ams1907.com/apis/list-extstg/quote/v2",
             "coverage_endpoint": "https://upscapi.ams1907.com/apis/list-extstg/coverage/v2",
-            "Bearer": "eyJhbGciOiJIUzM4NCJ9.eyJwYXJ0bmVySWQiOiJMRVQwMDEifQ.4ggrS4qKYhxfnIOI3f7jP85zPdJOd3-i_h0tv6G242L8k2WsVR0naeEz4BIWd2JV",
-            "X-IBM-Client-Id": "1e326652-7627-41be-b8bc-159581331946",
-            "X-IBM-Client-Secret": "Q2qG0tQ8aM6dP5eD7lM0uR5fP8nK3iX6oQ2kC4bI2yO0jT6qE4",
-            "partnerId": "LET001",
         },
         "test": {
             "quote_endpoint": "https://upscapi.ams1907.com/apis/list-extstg/quote/v2",
             "coverage_endpoint": "https://upscapi.ams1907.com/apis/list-extstg/coverage/v2",
-            "Bearer": "eyJhbGciOiJIUzM4NCJ9.eyJwYXJ0bmVySWQiOiJMRVQwMDEifQ.4ggrS4qKYhxfnIOI3f7jP85zPdJOd3-i_h0tv6G242L8k2WsVR0naeEz4BIWd2JV",
-            "X-IBM-Client-Id": "1e326652-7627-41be-b8bc-159581331946",
-            "X-IBM-Client-Secret": "Q2qG0tQ8aM6dP5eD7lM0uR5fP8nK3iX6oQ2kC4bI2yO0jT6qE4",
-            "partnerId": "LET001",
         },
         "prod": {
             "quote_endpoint": "https://upscapi.ups.com/apis/list/quote/v2",
             "coverage_endpoint": "https://upscapi.ups.com/apis/list/coverage/v2",
-            "Bearer": "eyJhbGciOiJIUzM4NCJ9.eyJwYXJ0bmVySWQiOiI4MjkxMDkwMDg1In0.FiuTIM_gGRyx59hGawb0FvHb58XkZ-fB0aN9Y8KSOUarLLugRedAYrCixpJs1vhw",
-            "X-IBM-Client-Id": "d88ad2fe-8bfd-4b7b-b593-ab0e86ff7329",
-            "X-IBM-Client-Secret": "",
-            "partnerId": "8291090085",
         },
     }
     def __init__(self):
@@ -1217,11 +1205,16 @@ class Orders:
         ):
             return None
         insurance_api = self.ups_capital_insurance_api[self.enviroment]
+        # Read secrets from environment variables (loaded from Secrets Manager)
+        bearer = os.environ.get("UPSC_BEARER", "")
+        client_id = os.environ.get("UPSC_CLIENT_ID", "")
+        client_secret = os.environ.get("UPSC_CLIENT_SECRET", "")
+        partner_id = os.environ.get("UPSC_PARTNER_ID", "")
         insurance_value = 100
         payload = json.dumps(
             {
                 "status": "UNCONFIRMED",
-                "partnerId": insurance_api["partnerId"],
+                "partnerId": partner_id,
                 "shipDate": order.get("shipped_date").split("T")[0],
                 "bol": order["trackingId"],
                 "insuredValue": str(insurance_value),
@@ -1248,9 +1241,9 @@ class Orders:
         )
         print("INSURANCE PAYLOAD", payload)
         headers = {
-            "bearer": insurance_api["Bearer"],
-            "X-IBM-Client-Id": insurance_api["X-IBM-Client-Id"],
-            "X-IBM-Client-Secret": insurance_api["X-IBM-Client-Secret"],
+            "bearer": bearer,
+            "X-IBM-Client-Id": client_id,
+            "X-IBM-Client-Secret": client_secret,
             "Content-Type": "application/json",
         }
         response = requests.request(
