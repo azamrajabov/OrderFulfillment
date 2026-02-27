@@ -185,7 +185,7 @@ Resources:
           INVENTORIES_TABLE: !Ref InventoriesTable
           AUDIT_TABLE: !Ref AuditTable
           APP_TEMP_FOLDER: /tmp/
-          COGNITO_URL: https://order-fulfillment.auth.us-east-1.amazoncognito.com
+          COGNITO_URL: https://letronics.auth.us-east-1.amazoncognito.com
           # COGNITO_APP_CLIENT_ID: 6mn742cjmopeumrdieom582pb0
           COGNITO_APP_CLIENT_ID: !Ref CognitoAppClientId
           COGNITO_USER_POOL_ID: us-east-1_2vG32aD30
