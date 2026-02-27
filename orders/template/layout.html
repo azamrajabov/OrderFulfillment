@@ -147,7 +147,7 @@
                 Inventory</a>
                 <hr>
                 {% for inventory in inventories -%}
-                    {% set name = inventory.model %}
+                    {% set name = inventory.SKU %}
                     <div class='inventory'>
                         {% if inventory.type == 'Cable' %}
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-thunderbolt" viewBox="0 0 16 16">
