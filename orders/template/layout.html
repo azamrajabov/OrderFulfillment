@@ -146,6 +146,7 @@
             </svg>
                 Inventory</a>
                 <hr>
+                <div><span style="padding-left:20px;font-weight: bold">SKU</span> <span style="padding-left:40px;font-weight:bold">A Stock</span></div>
                 {% for inventory in inventories -%}
                     {% set name = inventory.SKU %}
                     <div class='inventory'>
@@ -171,7 +172,7 @@
                             #}
                         {% endif %}
 
-                        {{ name }} - <strong>{{ inventory.quantity }}</strong></div>
+                        {{ name }} &nbsp;&nbsp; <strong>{{ inventory.quantity }}</strong></div>
                 {% endfor %}
             </td>
             <td width="75%" valign="top" style="padding-left:10px">
