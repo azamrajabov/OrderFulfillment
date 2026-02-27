@@ -43,10 +43,14 @@ def lambda_handler(event, context):
         "UPS_CLIENT_ID",
         "UPS_CLIENT_SECRET",
         "UPS_ACCOUNT_NUMBER",
-        "UPSC_BEARER",
-        "UPSC_CLIENT_ID",
-        "UPSC_CLIENT_SECRET",
-        "UPSC_PARTNER_ID",
+        "UPSC_BEARER_DEV",
+        "UPSC_BEARER_PROD",
+        "UPSC_CLIENT_ID_DEV",
+        "UPSC_CLIENT_ID_PROD",
+        "UPSC_CLIENT_SECRET_DEV",
+        "UPSC_CLIENT_SECRET_PROD",
+        "UPSC_PARTNER_ID_DEV",
+        "UPSC_PARTNER_ID_PROD",
     )
 
     print("* Getting tokens from secret manager...")
