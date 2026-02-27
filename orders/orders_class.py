@@ -1206,10 +1206,12 @@ class Orders:
             return None
         insurance_api = self.ups_capital_insurance_api[self.enviroment]
         # Read secrets from environment variables (loaded from Secrets Manager)
-        bearer = os.environ.get("UPSC_BEARER", "")
-        client_id = os.environ.get("UPSC_CLIENT_ID", "")
-        client_secret = os.environ.get("UPSC_CLIENT_SECRET", "")
-        partner_id = os.environ.get("UPSC_PARTNER_ID", "")
+        # Dev/test use _DEV suffix, prod uses _PROD suffix
+        env_suffix = "PROD" if self.enviroment == "prod" else "DEV"
+        bearer = os.environ.get(f"UPSC_BEARER_{env_suffix}", "")
+        client_id = os.environ.get(f"UPSC_CLIENT_ID_{env_suffix}", "")
+        client_secret = os.environ.get(f"UPSC_CLIENT_SECRET_{env_suffix}", "")
+        partner_id = os.environ.get(f"UPSC_PARTNER_ID_{env_suffix}", "")
         insurance_value = 100
         payload = json.dumps(
             {
