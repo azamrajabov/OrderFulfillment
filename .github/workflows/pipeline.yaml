@@ -14,7 +14,7 @@ env:
   PIPELINE_USER_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   SAM_TEMPLATE: template.yaml
-  TESTING_STACK_NAME: order-fulfillment-app-serverless-dev
+  TESTING_STACK_NAME: order-fulfillment-app-serverless-test
   TESTING_PIPELINE_EXECUTION_ROLE: arn:aws:iam::617152481049:role/aws-sam-cli-managed-dev-pipel-PipelineExecutionRole-7h1HY6NbSg6Q
   TESTING_CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::617152481049:role/aws-sam-cli-managed-dev-p-CloudFormationExecutionRo-tCy3nfDcVJ5n
   TESTING_ARTIFACTS_BUCKET: aws-sam-cli-managed-dev-pipeline-r-artifactsbucket-gl9vrousvsps
@@ -104,7 +104,7 @@ jobs:
       - name: Deploy to feature stack in the testing account
         shell: bash
         run: |
-          sam deploy --stack-name $(echo ${GITHUB_REF##*/} | tr -cd '[a-zA-Z0-9-]') \
+          sam deploy --stack-name order-fulfillment-$(echo ${GITHUB_REF##*/} | tr -cd '[a-zA-Z0-9-]') \
             --capabilities CAPABILITY_IAM \
             --region ${TESTING_REGION} \
             --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
