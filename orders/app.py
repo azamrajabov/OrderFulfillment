@@ -59,7 +59,9 @@ def lambda_handler(event, context):
     secrets = json.loads(response["SecretString"])
     for env_name in secret_var_names:
         # print(env_name, secrets.get(env_name))
-        os.environ[env_name] = secrets.get(env_name)
+        value = secrets.get(env_name)
+        if value is not None:
+            os.environ[env_name] = value
 
     if http_method == "POST" and "/request_order" == path:
         ###
