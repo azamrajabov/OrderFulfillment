@@ -72,13 +72,13 @@ Request Parts Order is triggered by the external system (Descartes Telematics) t
 
 ```
 ┌──────────────────┐                    ┌──────────────┐                ┌─────────┐
-│    Commercial     │                    │              │                │         │
-│    Telematics     │                    │  Letronics   │                │   UPS   │
-│   (Descartes)     │                    │              │                │   API   │
+│    Commercial    │                    │              │                │         │
+│    Telematics    │                    │  Letronics   │                │   UPS   │
+│   (Descartes)    │                    │              │                │   API   │
 └────────┬─────────┘                    └──────┬───────┘                └────┬────┘
          │                                     │                             │
          │  POST /request_order                │                             │
-         │  (orderId, address, parts[sku])      │                             │
+         │  (orderId, address, parts[sku])     │                             │
          │────────────────────────────────────>│                             │
          │                                     │                             │
          │                                     │  Validate SKUs              │
@@ -201,8 +201,8 @@ If SKU validation fails, required address fields are missing, or address validat
 │                          PARTS ORDER LIFECYCLE                              │
 │                                                                             │
 │  ┌──────────┐     ┌───────────┐     ┌──────────┐     ┌───────────┐         │
-│  │ Request   │────>│ Unshipped │────>│ Shipped  │────>│ Delivered │         │
-│  │ Order     │     │           │     │          │     │           │         │
+│  │ Request  │────>│ Unshipped │────>│ Shipped  │────>│ Delivered │         │
+│  │ Order    │     │           │     │          │     │           │         │
 │  └──────────┘     └───────────┘     └──────────┘     └───────────┘         │
 │       │                │                                                    │
 │       │                │            ┌──────────┐                            │
