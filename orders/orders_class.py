@@ -701,8 +701,8 @@ class Orders:
                 print("No parts found in the order for vehicle", vehicle)
                 return self.order_invalid_context()
             for part_item in parts_list:
-                the_part = inventories.get_inventory(
-                    inventory_id=part_item,
+                the_part = inventories.get_inventory_by_sku(
+                    sku=part_item,
                     fields=["Id", "model", "name", "type", "SKU"],
                 )
                 if not the_part:

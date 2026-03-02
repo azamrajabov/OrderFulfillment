@@ -118,6 +118,8 @@ class Inventories:
         try:
             response = self.table.get_item(Key={"Id": inventory_id})
             inventory = response.get("Item")
+            if not inventory:
+                return None
             if fields:
                 filtered_fields = {
                     key: inventory[key] for key in fields if key in inventory
@@ -128,6 +130,14 @@ class Inventories:
         except Exception as e:
             print("Error", e)
         return False
+
+    def get_inventory_by_sku(self, sku, fields=[]):
+        for inventory in self.inventories:
+            if inventory.get("SKU") == sku:
+                if fields:
+                    return {key: inventory[key] for key in fields if key in inventory}
+                return inventory
+        return None
 
     def reduce_inventory_quantity_by_name(
         self, inventory_name, quantity, order_type=""
