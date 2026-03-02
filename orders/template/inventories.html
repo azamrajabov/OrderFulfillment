@@ -29,10 +29,11 @@ input:valid {
     <h1>Inventories</h1>
     <br>
     <table class="ordersTable">
-        <tr><th>Id #</th><th>Model</th><th>Name</th><th>Type</th><th>Quantity</th></tr>
+        <tr><th>Id #</th><th>SKU</th><th></th>Model</th><th>Name</th><th>Type</th><th>Quantity</th></tr>
     {% for inventory in inventories -%}
         <tr>
             <td style="text-align:center" width="180">{{ inventory.Id }}</td>
+            <td>{{ inventory.SKU }}</td>
             <td>{{ inventory.model }}</td>
             <td>{{ inventory.name }}</td>
             <td>{{ inventory.type }}</td>

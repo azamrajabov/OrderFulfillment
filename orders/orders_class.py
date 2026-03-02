@@ -681,10 +681,10 @@ class Orders:
     def add_request_order_for_parts2(self, order):
         inventories = Inventories()
         order_id = order.get("orderId")
-        vehicles = order.get("vehicles", [])
+        order_parts = order.get("parts", [])
         address = order.get("address", {})
         if (
-            not vehicles
+            not order_parts
             or not order_id
             or not address
             or not address.get("addressLine1")
@@ -695,10 +695,10 @@ class Orders:
         ):
             return self.order_invalid_context()
         parts = []
-        for vehicle in vehicles:
-            parts_list = vehicle.get("sku", "").split(",")
+        for part in order_parts:
+            parts_list = part.get("sku", "").split(",")
             if not parts_list:
-                print("No parts found in the order for vehicle", vehicle)
+                print("No parts found in the order for part", part)
                 return self.order_invalid_context()
             for part_item in parts_list:
                 the_part = inventories.get_inventory_by_sku(
@@ -730,8 +730,8 @@ class Orders:
 
     def add_request_order(self, order):
         order_id = order.get("orderId")
-        is_order_for_parts = "sku" in order.get("vehicles", [])[0]
-        if is_order_for_parts:
+        parts = order.get("parts", [])
+        if parts and "sku" in parts[0]:
             return self.add_request_order_for_parts2(order)
         if order_id:
             try:
