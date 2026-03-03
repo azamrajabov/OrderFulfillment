@@ -49,8 +49,9 @@
                     {% endfor %}
                     {% for part in order.parts -%}
                         <tr>
-                        <td width="50%"><strong>{{ part.SKU }}</strong></td>
-                        <td width="50%"><strong>{{ part.name }}</strong></td>
+                        <td width="35%"><strong>{{ part.SKU }}</strong></td>
+                        <td width="45%"><strong>{{ part.name }}</strong></td>
+                        <td width="20%"><strong>Qty: {{ part.qty if part.qty else 1 }}</strong></td>
                         </tr>
                     {% endfor %}
                 </table>
