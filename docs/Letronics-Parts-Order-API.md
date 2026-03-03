@@ -129,7 +129,16 @@ Request Parts Order is triggered by the external system (Descartes Telematics) t
   },
   "parts": [
     {
-      "sku": "9001410,9001412,9001325"
+      "sku": "9001410",
+      "qty": 2
+    },
+    {
+      "sku": "9001412",
+      "qty": 5
+    },
+    {
+      "sku": "9001325",
+      "qty": 5
     }
   ]
 }
@@ -149,9 +158,10 @@ Request Parts Order is triggered by the external system (Descartes Telematics) t
 | `address.state`          | string   | Yes      | State (2-letter code, e.g., "TX")                              |
 | `address.zipCode`        | integer  | Yes      | ZIP code                                                       |
 | `parts`                  | array    | Yes      | Array of part objects                                          |
-| `parts[].sku`            | string   | Yes      | Comma-separated SKU numbers (e.g., `"9001410,9001412"`)        |
+| `parts[].sku`            | string   | Yes      | SKU number (e.g., `"9001410"`)                                 |
+| `parts[].qty`            | integer  | No       | Quantity to order (defaults to 1)                              |
 
-> **Note:** Multiple SKUs can be included in a single `sku` string separated by commas. Each SKU is individually validated against the inventory database.
+> **Note:** Each part is a separate object with its own SKU and quantity. Each SKU is validated against the inventory database. Inventory is subtracted at fulfillment time.
 
 ### Response Object - Request Parts Order
 
@@ -251,9 +261,9 @@ curl -X POST \
       "zipCode": 75235
     },
     "parts": [
-      {
-        "sku": "9001410,9001412,9001325"
-      }
+      {"sku": "9001410", "qty": 2},
+      {"sku": "9001412", "qty": 5},
+      {"sku": "9001325", "qty": 5}
     ]
   }'
 ```
@@ -285,9 +295,9 @@ payload = {
         "zipCode": 75235
     },
     "parts": [
-        {
-            "sku": "9001410,9001412,9001325"
-        }
+        {"sku": "9001410", "qty": 2},
+        {"sku": "9001412", "qty": 5},
+        {"sku": "9001325", "qty": 5}
     ]
 }
 
@@ -321,9 +331,9 @@ print(response.json())
     "zipCode": 75235
   },
   "parts": [
-    {
-      "sku": "9001410,9001412,9001325"
-    }
+    {"sku": "9001410", "qty": 2},
+    {"sku": "9001412", "qty": 5},
+    {"sku": "9001325", "qty": 5}
   ]
 }
 ```
@@ -334,7 +344,7 @@ print(response.json())
 
 ### SKU Validation
 
-Each SKU in the comma-separated `sku` string is individually validated against the inventory database. The system looks up each SKU and retrieves the following fields:
+Each SKU is individually validated against the inventory database. The system looks up each SKU and retrieves the following fields:
 
 - `Id` - Internal inventory ID
 - `model` - Part model number

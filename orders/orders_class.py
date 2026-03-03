@@ -696,22 +696,23 @@ class Orders:
             return self.order_invalid_context()
         parts = []
         for part in order_parts:
-            parts_list = part.get("sku", "").split(",")
-            if not parts_list:
-                print("No parts found in the order for part", part)
+            sku = part.get("sku", "")
+            qty = int(part.get("qty", 1))
+            if not sku:
+                print("No SKU found in the order for part", part)
                 return self.order_invalid_context()
-            for part_item in parts_list:
-                the_part = inventories.get_inventory_by_sku(
-                    sku=part_item,
-                    fields=["Id", "model", "name", "type", "SKU"],
+            the_part = inventories.get_inventory_by_sku(
+                sku=sku,
+                fields=["Id", "model", "name", "type", "SKU"],
+            )
+            if not the_part:
+                print(
+                    "No parts found in our inventory that matches to SKU=",
+                    sku,
                 )
-                if not the_part:
-                    print(
-                        "No parts found in our inventory that matches to SKU=",
-                        part_item,
-                    )
-                    return self.order_invalid_context()
-                parts.append(the_part)
+                return self.order_invalid_context()
+            the_part["qty"] = qty
+            parts.append(the_part)
         order_parts = {
             "orderId": order_id,
             "address": {
@@ -1158,7 +1159,7 @@ class Orders:
                     adaptors.append(vehicle["adapter"])
         if "parts" in order:
             for part in order.get("parts"):
-                parts.append(part["name"])
+                parts.append(part)
 
         order["orderStatus"] = "Fulfilled"
         current_datetime = datetime.datetime.now()
@@ -1176,8 +1177,10 @@ class Orders:
                 inventories.reduce_cam_quantity()
 
             for part in parts:
+                part_name = part["name"] if isinstance(part, dict) else part
+                part_qty = part.get("qty", 1) if isinstance(part, dict) else 1
                 inventories.reduce_inventory_quantity_by_name(
-                    part, 1, order_type=order["order_type"]
+                    part_name, part_qty, order_type=order["order_type"]
                 )
 
             return label_image
