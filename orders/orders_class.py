@@ -1159,6 +1159,12 @@ class Orders:
                     adaptors.append(vehicle["adapter"])
         if "parts" in order:
             for part in order.get("parts"):
+                if part.get("type") == "Camera" and part.get("SKU") in camera_ids:
+                    scanned_value = camera_ids[part["SKU"]]
+                    if "," in scanned_value:
+                        part["cameraId"], part["cameraPassword"] = scanned_value.split(",", 1)
+                    else:
+                        part["cameraId"] = scanned_value
                 parts.append(part)
 
         order["orderStatus"] = "Fulfilled"

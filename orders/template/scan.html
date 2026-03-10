@@ -55,6 +55,11 @@ td.menu {
     {% endfor %}
     {% for part in order.parts -%}
         <div class='field'>({{ part.model }}) {{ part.Id }}</div>
+        {% if part.type == 'Camera' %}
+        <div class='value'>
+            <input name="cameraId[{{ part.SKU }}]" class="cameraId" placeholder="S/N" autofocus> <span class='resetCode'>&#8513;</span>
+        </div>
+        {% endif %}
         <hr>
     {% endfor %}
     <div class='value'>
