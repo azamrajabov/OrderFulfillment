@@ -680,19 +680,38 @@ class Orders:
 
     def add_request_order_for_parts2(self, order):
         inventories = Inventories()
-        order_id = order.get("orderId")
+        # Accept both camelCase and snake_case keys from clients
+        order_id = order.get("orderId") or order.get("order_id")
         order_parts = order.get("parts", [])
         address = order.get("address", {})
-        if (
-            not order_parts
-            or not order_id
-            or not address
-            or not address.get("addressLine1")
-            or not address.get("zipCode")
-            or not address.get("state")
-            or not address.get("business")
-            or not address.get("name")
-        ):
+        zip_code = address.get("zipCode") or address.get("zipcode")
+
+        # Validate required fields and log exactly which one(s) failed
+        missing_fields = []
+        if not order_parts:
+            missing_fields.append("parts")
+        if not order_id:
+            missing_fields.append("orderId")
+        if not address:
+            missing_fields.append("address")
+        else:
+            if not address.get("addressLine1"):
+                missing_fields.append("address.addressLine1")
+            if not zip_code:
+                missing_fields.append("address.zipCode")
+            if not address.get("state"):
+                missing_fields.append("address.state")
+            if not address.get("business"):
+                missing_fields.append("address.business")
+            if not address.get("name"):
+                missing_fields.append("address.name")
+        if missing_fields:
+            print(
+                "Invalid parts order request - missing/invalid fields:",
+                missing_fields,
+                "| received order:",
+                order,
+            )
             return self.order_invalid_context()
         parts = []
         for part in order_parts:
@@ -719,7 +738,7 @@ class Orders:
                 "addressLine1": address.get("addressLine1"),
                 "addressLine2": address.get("addressLine2", ""),
                 "city": address.get("city", ""),
-                "zipCode": str(address.get("zipCode")),
+                "zipCode": str(zip_code),
                 "state": address.get("state"),
                 "business": address.get("business"),
                 "name": address.get("name"),
@@ -737,6 +756,14 @@ class Orders:
         if order_id:
             try:
                 order = self.vindecode(order)
+                # Normalize zipCode to a string (and accept snake_case) so the
+                # camera path stores it consistently, same as the parts path
+                address = order.get("address")
+                if isinstance(address, dict):
+                    zip_code = address.get("zipCode") or address.get("zipcode")
+                    if zip_code is not None:
+                        address["zipCode"] = str(zip_code)
+                        address.pop("zipcode", None)
                 if self.get_order(order_id):
                     return self.order_exists_context()
                 order["order_type"] = "camera"
@@ -798,6 +825,14 @@ class Orders:
             return self.order_invalid_context()
         try:
             order = self.vindecode(order)
+            # Normalize zipCode to a string (and accept snake_case) so the
+            # return path stores it consistently, same as the other paths
+            address = order.get("address")
+            if isinstance(address, dict):
+                zip_code = address.get("zipCode") or address.get("zipcode")
+                if zip_code is not None:
+                    address["zipCode"] = str(zip_code)
+                    address.pop("zipcode", None)
             if self.get_order(order_id):
                 return self.order_exists_context()
             order["order_type"] = "return"
@@ -1083,6 +1118,13 @@ class Orders:
 
     def change_order_address(self, order_id: str, order_num: str, address: dict):
         print("order_id", order_id, "address", address)
+        # Normalize zipCode to a string (and accept snake_case) so updates
+        # store it consistently, same as the create paths
+        if isinstance(address, dict):
+            zip_code = address.get("zipCode") or address.get("zipcode")
+            if zip_code is not None:
+                address["zipCode"] = str(zip_code)
+                address.pop("zipcode", None)
         current_datetime = datetime.datetime.now()
         order_key = {"orderId": order_id, "order_num": order_num}
         update_expression = "SET address = :address, status_updated = :dateTimeNow"
