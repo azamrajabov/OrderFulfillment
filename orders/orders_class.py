@@ -12,6 +12,7 @@ from mappings_class import Mappings
 from inventory_class import Inventories
 from boto3.dynamodb.conditions import Attr, Key
 from shipping_labels import ShippingLabels
+from us_states import normalize_address_state
 
 
 class Orders:
@@ -619,6 +620,8 @@ class Orders:
     def add_request_order_for_parts(self, order):
         order_id = order.get("orderId", self.generate_order_id())
         try:
+            # UPS only accepts 2-letter state codes ("MN", not "Minnesota")
+            normalize_address_state(order.get("address"))
             if self.get_order(order_id):
                 return self.order_exists_context()
             order["orderId"] = order_id
@@ -764,6 +767,8 @@ class Orders:
                     if zip_code is not None:
                         address["zipCode"] = str(zip_code)
                         address.pop("zipcode", None)
+                # UPS only accepts 2-letter state codes ("MN", not "Minnesota")
+                normalize_address_state(address)
                 if self.get_order(order_id):
                     return self.order_exists_context()
                 order["order_type"] = "camera"
@@ -833,6 +838,8 @@ class Orders:
                 if zip_code is not None:
                     address["zipCode"] = str(zip_code)
                     address.pop("zipcode", None)
+            # UPS only accepts 2-letter state codes ("MN", not "Minnesota")
+            normalize_address_state(address)
             if self.get_order(order_id):
                 return self.order_exists_context()
             order["order_type"] = "return"
@@ -972,6 +979,9 @@ class Orders:
         self, order: dict, order_address: dict, validate_address=True
     ):
         try:
+            # UPS only accepts 2-letter state codes ("MN", not "Minnesota")
+            normalize_address_state(order_address)
+            normalize_address_state(order.get("address"))
             shipping = self.shipping_order(
                 order=order, validate_address=validate_address
             )
@@ -1125,6 +1135,8 @@ class Orders:
             if zip_code is not None:
                 address["zipCode"] = str(zip_code)
                 address.pop("zipcode", None)
+        # UPS only accepts 2-letter state codes ("MN", not "Minnesota")
+        normalize_address_state(address)
         current_datetime = datetime.datetime.now()
         order_key = {"orderId": order_id, "order_num": order_num}
         update_expression = "SET address = :address, status_updated = :dateTimeNow"
