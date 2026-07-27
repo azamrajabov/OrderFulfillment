@@ -6,6 +6,7 @@ to state province code", so the order fails before it ever reaches the label.
 """
 
 import re
+import unicodedata
 
 STATE_NAMES = {
     "alabama": "AL",
@@ -85,6 +86,14 @@ STATE_NAMES = {
     "quebec": "QC",
     "saskatchewan": "SK",
     "yukon": "YT",
+    # Canadian provinces, French names
+    "colombiebritannique": "BC",
+    "nouveaubrunswick": "NB",
+    "terreneuveetlabrador": "NL",
+    "terreneuve": "NL",
+    "territoiresdunordouest": "NT",
+    "nouvelleecosse": "NS",
+    "ileduprinceedouard": "PE",
 }
 
 STATE_CODES = set(STATE_NAMES.values())
@@ -94,16 +103,22 @@ def normalize_state_code(state):
     """Return the 2-letter code for `state`.
 
     Codes are passed through (upper-cased), full names are looked up ignoring
-    case, spaces and punctuation ("new york", "N.Y.", "New  York" -> "NY").
-    Anything unrecognized is returned stripped and unchanged so UPS still gets
-    to report it.
+    case, spaces, punctuation and accents ("new york", "N.Y.", "New  York" ->
+    "NY"; "Quebec", "Québec" -> "QC"). Anything unrecognized is returned
+    stripped and unchanged so UPS still gets to report it.
     """
     if not isinstance(state, str):
         return state
     cleaned = state.strip()
     if not cleaned:
         return cleaned
-    key = re.sub(r"[^a-z]", "", cleaned.lower())
+    # Fold accents so "Québec" and "Quebec" hit the same key
+    folded = "".join(
+        char
+        for char in unicodedata.normalize("NFKD", cleaned)
+        if not unicodedata.combining(char)
+    )
+    key = re.sub(r"[^a-z]", "", folded.lower())
     if len(key) == 2 and key.upper() in STATE_CODES:
         return key.upper()
     return STATE_NAMES.get(key, cleaned)
